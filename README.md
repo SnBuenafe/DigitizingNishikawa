@@ -1,7 +1,7 @@
 # DigitizingNishikawa
 Repository for Digitizing Nishikawa et al (1985) Data
 
-This repository digitizes spawning ground data on the following species:
+This repository digitizes average spawning ground data on the following species from 1956-1981:
 1. Yellowfin tuna
 2. Swordfish
 3. Albacore
@@ -20,3 +20,7 @@ This repository digitizes spawning ground data on the following species:
 16. Slender tuna
 17. Longfin escolar
 18. Sauries
+
+Tows were done seasonally (Jan-Mar, Apr-Jun, Jul-Sept, Oct-Dec).
+
+Number of tows and volumes of water strained are reported and digitized.
