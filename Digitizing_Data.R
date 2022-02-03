@@ -66,9 +66,12 @@ stopCluster(cl)
 
 temp <- do.call(rbind, per_species)
 
+# Do small change on Bonitos
+temp <- temp %>%  
+  add_row(species = "bonitos", season = "jul-sept", longitude = -106, latitude = -8, abundance = 0)
+
 spp_data <- temp %>% filter(species %in% spp)
 write_csv(spp_data, "Output/Species_Data.csv")
 
 tow_data <- temp %>% filter(!species %in% spp)
 write_csv(tow_data, "Output/Tow_Data.csv")
-
