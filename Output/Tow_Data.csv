@@ -1,4 +1,4 @@
-species,season,latitude,longitude,abundance
+effort,season,latitude,longitude,abundance
 tows,apr-jun,4,100,0
 tows,apr-jun,3,100,0
 tows,apr-jun,-11,100,1
