@@ -1,5 +1,5 @@
 # Loading packages and objects
-pacman::p_load("tidyverse", "sf", "raster", "terra", "rnaturalearth", "RColorBrewer", "cmocean", "magrittr")
+pacman::p_load("tidyverse", "sf", "raster", "terra", "rnaturalearth", "RColorBrewer", "cmocean", "magrittr", "patchwork")
 load(url("https://github.com/valentinitnelav/RandomScripts/blob/master/NaturalEarth.RData?raw=true"))
 source("fSpatPlan_Convert2PacificRobinson.R")
 
@@ -124,7 +124,7 @@ save_plots <- function(species_name) {
 # Skipjack Tuna
 save_plots("skipjack-tuna")
 # Blue Marlin
-save_plots("black-marlin")
+save_plots("blue-marlin")
 # Yellowfin Tuna
 save_plots("yellowfin-tuna")
 # Albacore
@@ -199,8 +199,8 @@ make_EffortSeasonPlot <- function(df) {
     geom_text(data = lbl.Y.prj, aes(x = X.prj, y = Y.prj, label = lbl), color="grey50", size=2) +
     geom_text(data = lbl.X.prj, aes(x = X.prj, y = Y.prj, label = lbl), color="grey50", size=2) +
     # the default, ratio = 1 in coord_fixed ensures that one unit on the x-axis is the same length as one unit on the y-axis
-    scale_colour_manual(values = c("#c7e9b4", "#7fcdbb", "#41b6c4", "#2c7fb8", "#253494"),
-                        aesthetics = "color",
+    scale_fill_manual(values = c("#c7e9b4", "#7fcdbb", "#41b6c4", "#2c7fb8", "#253494"),
+                        aesthetics = "fill",
                         name = "Abundance") + theme_classic() + theme(axis.title = element_blank())
   
   return(plot)
@@ -219,5 +219,129 @@ save_Effortplots <- function(effort_name) {
 save_Effortplots("tows")
 save_Effortplots("volume")
 
-#### Check the order of abundance
+#### Check the order of abundance ####
 spp %>% group_by(species) %>% summarize(total_abundance = sum(abundance)) %>% arrange(total_abundance)
+
+#### Make bar plots: proportion of positive samples per season ####
+plot_PositiveProportion <- function(df, species_name, season_name) {
+  df1 <- df %>% filter(species == species_name, season == season_name) %>% 
+    dplyr::select(latitude, abundance) %>% 
+    count(latitude, abundance, name = "cases") %>% 
+    group_by(latitude) %>% 
+    summarize(PositiveProportion = sum(cases[abundance > 0])/sum(cases))
+  
+  g <- ggplot(df1, aes(x = latitude, y = PositiveProportion))
+  
+  if(season_name == "jan-mar") {
+    g <- g + geom_col(fill = "#D8E8AD", color = "grey20", size = 0.1)
+  } else if(season_name == "apr-jun") {
+    g <- g + geom_col(fill = "#49A793", color = "grey20", size = 0.1)
+  } else if(season_name == "jul-sept") {
+    g <- g + geom_col(fill = "#346588", color = "grey20", size = 0.1)
+  } else if(season_name == "oct-dec") {
+    g <- g + geom_col(fill = "#251B32", color = "grey20", size = 0.1)
+  }
+  
+  plot <- g + coord_flip(ylim = c(0,0.6), xlim = c(-50, 50)) +
+   theme_classic() + theme(panel.background = element_rect(fill = "transparent"), # bg of the panel
+                             plot.background = element_rect(fill = "transparent", color = NA), # all rectangles
+                             panel.grid.major = element_line(color = "grey64", size = 0.1),
+                             axis.title = element_blank(),
+                             axis.text = element_blank(),
+                             axis.line.y = element_blank(),
+                             axis.ticks.y = element_blank()
+                            )
+  return(plot)
+}
+
+# Skipjack
+season_list <- c("jan-mar", "apr-jun", "jul-sept", "oct-dec")
+file_name <- c("_Spring", "_Summer", "_Autumn", "_Winter")
+for (i in 1:length(season_list)) {
+  plot_PositiveProportion(spp, "skipjack-tuna", season_list[i]) %>% ggsave(filename = paste0("Figures/barplots/SkipjackTuna", file_name[i], ".png"), bg = "transparent", width = 3, height = 7)
+}
+
+# Blue Marlin
+for (i in 1:length(season_list)) {
+  plot_PositiveProportion(spp, "blue-marlin", season_list[i]) %>% ggsave(filename = paste0("Figures/barplots/BlueMarlin", file_name[i], ".png"), bg = "transparent", width = 3, height = 7)
+}
+
+# Yellowfin Tuna
+for (i in 1:length(season_list)) {
+  plot_PositiveProportion(spp, "yellowfin-tuna", season_list[i]) %>% ggsave(filename = paste0("Figures/barplots/YellowfinTuna", file_name[i], ".png"), bg = "transparent", width = 3, height = 7)
+}
+
+# Albacore
+for (i in 1:length(season_list)) {
+  plot_PositiveProportion(spp, "albacore", season_list[i]) %>% ggsave(filename = paste0("Figures/barplots/Albacore", file_name[i], ".png"), bg = "transparent", width = 3, height = 7)
+}
+
+# Shortbill Spearfish
+for (i in 1:length(season_list)) {
+  plot_PositiveProportion(spp, "shortbill-spearfish", season_list[i]) %>% ggsave(filename = paste0("Figures/barplots/ShortbilLSpearish", file_name[i], ".png"), bg = "transparent", width = 3, height = 7)
+}
+
+# Frigate tuna
+for (i in 1:length(season_list)) {
+  plot_PositiveProportion(spp, "frigate-tuna", season_list[i]) %>% ggsave(filename = paste0("Figures/barplots/FrigateTuna", file_name[i], ".png"), bg = "transparent", width = 3, height = 7)
+}
+
+# Bigeye tuna
+for (i in 1:length(season_list)) {
+  plot_PositiveProportion(spp, "bigeye-tuna", season_list[i]) %>% ggsave(filename = paste0("Figures/barplots/BigeyeTuna", file_name[i], ".png"), bg = "transparent", width = 3, height = 7)
+}
+
+# Swordfish
+for (i in 1:length(season_list)) {
+  plot_PositiveProportion(spp, "swordfish", season_list[i]) %>% ggsave(filename = paste0("Figures/barplots/Swordfish", file_name[i], ".png"), bg = "transparent", width = 3, height = 7)
+}
+
+# Striped Marlin
+for (i in 1:length(season_list)) {
+  plot_PositiveProportion(spp, "striped-marlin", season_list[i]) %>% ggsave(filename = paste0("Figures/barplots/StripedMarlin", file_name[i], ".png"), bg = "transparent", width = 3, height = 7)
+}
+
+# Sauries
+for (i in 1:length(season_list)) {
+  plot_PositiveProportion(spp, "sauries", season_list[i]) %>% ggsave(filename = paste0("Figures/barplots/Sauries", file_name[i], ".png"), bg = "transparent", width = 3, height = 7)
+}
+
+# Sailfish
+for (i in 1:length(season_list)) {
+  plot_PositiveProportion(spp, "sailfish", season_list[i]) %>% ggsave(filename = paste0("Figures/barplots/Sailfish", file_name[i], ".png"), bg = "transparent", width = 3, height = 7)
+}
+
+# Longfin Escolar
+for (i in 1:length(season_list)) {
+  plot_PositiveProportion(spp, "longfin-escolar", season_list[i]) %>% ggsave(filename = paste0("Figures/barplots/LongfinEscolar", file_name[i], ".png"), bg = "transparent", width = 3, height = 7)
+}
+
+# Bluefin Tuna
+for (i in 1:length(season_list)) {
+  plot_PositiveProportion(spp, "bluefin-tuna", season_list[i]) %>% ggsave(filename = paste0("Figures/barplots/BluefinTuna", file_name[i], ".png"), bg = "transparent", width = 3, height = 7)
+}
+
+# Little Tuna
+for (i in 1:length(season_list)) {
+  plot_PositiveProportion(spp, "little-tuna", season_list[i]) %>% ggsave(filename = paste0("Figures/barplots/LittleTuna", file_name[i], ".png"), bg = "transparent", width = 3, height = 7)
+}
+
+# Southern Bluefin Tuna
+for (i in 1:length(season_list)) {
+  plot_PositiveProportion(spp, "southern-bluefin-tuna", season_list[i]) %>% ggsave(filename = paste0("Figures/barplots/SouthernBluefinTuna", file_name[i], ".png"), bg = "transparent", width = 3, height = 7)
+}
+
+# Slender Tuna
+for (i in 1:length(season_list)) {
+  plot_PositiveProportion(spp, "slender-tuna", season_list[i]) %>% ggsave(filename = paste0("Figures/barplots/SlenderTuna", file_name[i], ".png"), bg = "transparent", width = 3, height = 7)
+}
+
+# Bonitos
+for (i in 1:length(season_list)) {
+  plot_PositiveProportion(spp, "bonitos", season_list[i]) %>% ggsave(filename = paste0("Figures/barplots/Bonitos", file_name[i], ".png"), bg = "transparent", width = 3, height = 7)
+}
+
+# Black Marlin
+for (i in 1:length(season_list)) {
+  plot_PositiveProportion(spp, "black-marlin", season_list[i]) %>% ggsave(filename = paste0("Figures/barplots/BlackMarlin", file_name[i], ".png"), bg = "transparent", width = 3, height = 7)
+}
