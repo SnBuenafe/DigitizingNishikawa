@@ -1,4 +1,4 @@
-effort,season,latitude,longitude,abundance
+category,season,latitude,longitude,effort
 tows,apr-jun,4,100,0
 tows,apr-jun,3,100,0
 tows,apr-jun,-11,100,1

@@ -74,5 +74,5 @@ spp_data <- temp %>% filter(species %in% spp)
 write_csv(spp_data, "Output/Species_Data.csv")
 
 tow_data <- temp %>% filter(!species %in% spp) %>% 
-  rename(effort = species)
+  rename(category = species, effort = abundance)
 write_csv(tow_data, "Output/Tow_Data.csv")
