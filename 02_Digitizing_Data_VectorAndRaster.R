@@ -1,11 +1,15 @@
 library(tidyverse)
 library(magrittr)
 library(sf)
+library(terra)
+library(stars)
 source("fSpatPlan_Convert2PacificRobinson.R")
 
 spp <- read_csv("Output/Species_Data.csv")
 
-#### Projecting data: Robinson Projection && Make Data Gridded 1x1 ####
+#### Saving as vector files ####
+# Vector files are in 1x1 resolution sf objects (polygons)
+# And are projected in the Robinson Projection
 
 # Adding + 0.5 degree to both latitude and longitude
 # Because points in the .csv file represent the lower, left of each 1x1 grid cell
@@ -17,7 +21,7 @@ spp_tmp <- spp %>%
 
 # Show all data as gridded data.
 season_list <- c("jan-mar", "apr-jun", "jul-sept", "oct-dec")
-make_GriddedData <- function(df, species_name, season_name) {
+make_GriddedData <- function(df, species_name, season_name, projected = TRUE) { # Default is projected using Robinson Projection
   longlat <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
   rob_pacific <- "+proj=robin +lon_0=180 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
   
@@ -39,9 +43,16 @@ make_GriddedData <- function(df, species_name, season_name) {
     as.logical()
   
   # Project to Pacific-centered Robinson
-  df_poly2 <- df_poly[idx,] %>% 
-    fSpatPlan_Convert2PacificRobinson() %>% 
-    as_tibble()
+  df_poly2 <- df_poly[idx,] 
+  
+  if (isTRUE(projected)){
+    df_poly2 %<>% 
+      fSpatPlan_Convert2PacificRobinson() %>% 
+      as_tibble()
+  } else {
+    df_poly2 %<>% 
+      as_tibble()
+  }
   
   df_tmp <- df %>% as_tibble() %>% 
     cbind(., df_poly2) %>% 
@@ -148,4 +159,111 @@ for(i in 1:length(season_list)) {
 # Black marlin
 for(i in 1:length(season_list)) {
   save_RObjects("black-marlin", season_list[i])
+}
+
+
+#### Saving as raster files ####
+save_RasterObj <- function(species_name, season_name, projected = TRUE) {
+  raster <- make_GriddedData(spp_tmp, species_name, season_name, projected) %>% 
+    dplyr::select(abundance, geometry) %>% 
+    st_rasterize(.) %>% 
+    as(., "Raster") %>% 
+    rast()
+  
+  terra::writeRaster(raster, paste0("Output/Raster/RasterFile_", species_name, "_", season_name,".tif"), filetype="GTiff", overwrite=TRUE)
+  
+  return(raster)
+}
+
+# Save files. If you want to save them as objects in the environment do the following, for example:
+# obj <- save_RasterObj("skipjack-tuna", "jan-mar")
+# Skipjack tuna
+season_list <- c("jan-mar", "apr-jun", "jul-sept", "oct-dec")
+for(i in 1:length(season_list)) {
+  save_RasterObj("skipjack-tuna", season_list[i], projected = FALSE)
+}
+
+# Blue marlin
+for(i in 1:length(season_list)) {
+  save_RasterObj("blue-marlin", season_list[i], projected = FALSE)
+}
+
+# Yellowfin tuna
+for(i in 1:length(season_list)) {
+  save_RasterObj("yellowfin-tuna", season_list[i], projected = FALSE)
+}
+
+# Albacore
+for(i in 1:length(season_list)) {
+  save_RasterObj("albacore", season_list[i], projected = FALSE)
+}
+
+# Shortbill spearfish
+for(i in 1:length(season_list)) {
+  save_RasterObj("shortbill-spearfish", season_list[i], projected = FALSE)
+}
+
+# Frigate tuna
+for(i in 1:length(season_list)) {
+  save_RasterObj("frigate-tuna", season_list[i], projected = FALSE)
+}
+
+# Bigeye tuna
+for(i in 1:length(season_list)) {
+  save_RasterObj("bigeye-tuna", season_list[i], projected = FALSE)
+}
+
+# Swordfish
+for(i in 1:length(season_list)) {
+  save_RasterObj("swordfish", season_list[i], projected = FALSE)
+}
+
+# Striped marlin
+for(i in 1:length(season_list)) {
+  save_RasterObj("striped-marlin", season_list[i], projected = FALSE)
+}
+
+# Sauries
+for(i in 1:length(season_list)) {
+  save_RasterObj("sauries", season_list[i], projected = FALSE)
+}
+
+# Sailfish
+for(i in 1:length(season_list)) {
+  save_RasterObj("sailfish", season_list[i], projected = FALSE)
+}
+
+# Longfin escolar
+for(i in 1:length(season_list)) {
+  save_RasterObj("longfin-escolar", season_list[i], projected = FALSE)
+}
+
+# Bluefin tuna
+for(i in 1:length(season_list)) {
+  save_RasterObj("bluefin-tuna", season_list[i], projected = FALSE)
+}
+
+# Little tuna
+for(i in 1:length(season_list)) {
+  save_RasterObj("little-tuna", season_list[i], projected = FALSE)
+}
+
+# Southern bluefin tuna
+for(i in 1:length(season_list)) {
+  save_RasterObj("southern-bluefin-tuna", season_list[i], projected = FALSE)
+}
+
+# Slender tuna
+for(i in 1:length(season_list)) {
+  save_RasterObj("slender-tuna", season_list[i], projected = FALSE)
+}
+
+# Bonitos
+for(i in 1:length(season_list)) {
+  save_RasterObj("bonitos", season_list[i], projected = FALSE)
+}
+
+# Black marlin
+for(i in 1:length(season_list)) {
+  save_RasterObj("black-marlin", season_list[i], projected = FALSE)
 }

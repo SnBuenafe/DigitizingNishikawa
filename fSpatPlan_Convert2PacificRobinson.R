@@ -1,3 +1,5 @@
+# Written by J.E. Everett and I. Brito-Morales, and modified by K.C. Buenafe
+
 
 fSpatPlan_Convert2PacificRobinson <- function(df, buff = 0){
   # Define a long & slim polygon that overlaps the meridian line & set its CRS to match 
