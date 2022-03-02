@@ -234,7 +234,7 @@ make_GriddedEffort <- function(df, effort_name, season_name) {
   return(df_tmp)
 }
 make_EffortSeasonPlot <- function(df) {
-  plot <- ggplot() + geom_sf(data = df, aes(fill = as.factor(abundance)), color = "grey64", size = 0.01) +
+  plot <- ggplot() + geom_sf(data = df, aes(fill = as.factor(effort)), color = "grey64", size = 0.01) +
     geom_sf(data = land, fill = "grey20", color = NA, size = 0.01) +
     geom_polygon(data=NE_box_rob, aes(x=long, y=lat), colour="black", fill="transparent", size = 0.25) +
     # add graticules projected to Robinson
@@ -245,7 +245,7 @@ make_EffortSeasonPlot <- function(df) {
     # the default, ratio = 1 in coord_fixed ensures that one unit on the x-axis is the same length as one unit on the y-axis
     scale_fill_manual(values = c("#c7e9b4", "#7fcdbb", "#41b6c4", "#2c7fb8", "#253494"),
                         aesthetics = "fill",
-                        name = "Abundance") + theme_classic() + theme(axis.title = element_blank())
+                        name = "Effort") + theme_classic() + theme(axis.title = element_blank())
   
   return(plot)
 }

@@ -38,7 +38,7 @@ per_species <- foreach(i = 1:length(file_list), .packages = c('tidyverse')) %dop
   
   df <- read.csv(file) %>% 
     as_tibble() %>% 
-    select(-X) # removing first column
+    dplyr::select(-1) # removing first column
     
   # make sure that dimensions are 361 (longitude) x 101 (latitude)
   df_new <- df[1:length(latitude), 1:length(longitude)] %>% 
