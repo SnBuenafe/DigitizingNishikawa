@@ -208,7 +208,7 @@ make_GriddedEffort <- function(df, effort_name, season_name) {
   rob_pacific <- "+proj=robin +lon_0=180 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
   
   df <- df %>% 
-    filter(effort == effort_name, season == season_name)
+    filter(category == effort_name, season == season_name)
   
   df_crs <- st_crs(longlat)
   
@@ -289,11 +289,7 @@ plot_PositiveProportion <- function(df, species_name, season_name) {
   plot <- g + coord_flip(ylim = c(0,0.6), xlim = c(-50, 50)) +
    theme_classic() + theme(panel.background = element_rect(fill = "transparent"), # bg of the panel
                              plot.background = element_rect(fill = "transparent", color = NA), # all rectangles
-                             panel.grid.major = element_line(color = "grey64", size = 0.1),
-                             axis.title = element_blank(),
-                             axis.text = element_blank(),
-                             axis.line.y = element_blank(),
-                             axis.ticks.y = element_blank()
+                             panel.grid.major = element_line(color = "grey64", size = 0.1)
                             )
   return(plot)
 }
