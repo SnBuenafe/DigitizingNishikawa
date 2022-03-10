@@ -24,3 +24,11 @@ This repository digitizes average spawning ground data on the following species 
 Tows were done seasonally (Jan-Mar, Apr-Jun, Jul-Sept, Oct-Dec).
 
 Number of tows and volumes of water strained are reported and digitized.
+
+The digitized data of all 18 species in text delimited (CSV), raster, and vector files are found in `/Output`.
+
+To replicate the process of generating these files go through the R scripts sequentially:
+
+* `01_Digitizing_Data_CSV.R`: Converts all .csv files from `/RawData` to one long csv file for larval distributions and one for towing effort
+* `02_Digitizing_Data_VectorAndRaster.R`: Creates the vector (sf objects saved as .RDS) and raster (GEOTIFF files saved as .tif) files
+* `03_Making_Maps.R`: Replicates the species plots shown in the data paper.
