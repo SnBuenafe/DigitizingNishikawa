@@ -81,9 +81,10 @@ make_SpeciesSeasonPlot <- function(df) {
     geom_text(data = lbl.X.prj, aes(x = X.prj, y = Y.prj, label = lbl), color="grey50", size=2) +
     # the default, ratio = 1 in coord_fixed ensures that one unit on the x-axis is the same length as one unit on the y-axis
     
-    scale_fill_manual(values = c("#c7e9b4", "#7fcdbb", "#41b6c4", "#2c7fb8", "#253494"),
+    scale_fill_manual(values = c("#8FBAE4", "#FEE05B", "#D9B342", "#A25A25", "#082436"),
                         aesthetics = "fill",
-                        name = "Abundance") + theme_classic() + theme(axis.title = element_blank())
+                        name = "Abundance") + theme_classic() + theme(axis.title = element_blank()) +
+    theme(legend.position = "none")
   
   return(plot)
 }
@@ -117,39 +118,39 @@ save_plots <- function(species_name) {
 # Skipjack Tuna
 save_plots("skipjack-tuna")
 # Blue Marlin
-save_plots("blue-marlin", blend = TRUE)
+save_plots("blue-marlin")
 # Yellowfin Tuna
-save_plots("yellowfin-tuna", blend = TRUE)
+save_plots("yellowfin-tuna")
 # Albacore
-save_plots("albacore", blend = TRUE)
+save_plots("albacore")
 # Shortbill Spearfish
-save_plots("shortbill-spearfish", blend = TRUE)
+save_plots("shortbill-spearfish")
 # Frigate Tuna
-save_plots("frigate-tuna", blend = TRUE)
+save_plots("frigate-tuna")
 # Bigeye Tuna
-save_plots("bigeye-tuna", blend = TRUE)
+save_plots("bigeye-tuna")
 # Swordfish
-save_plots("swordfish", blend = TRUE)
+save_plots("swordfish")
 # Striped Marlin
-save_plots("striped-marlin", blend = TRUE)
+save_plots("striped-marlin")
 # Sauries
-save_plots("sauries", blend = TRUE)
+save_plots("sauries")
 # Sailfish
-save_plots("sailfish", blend = TRUE)
+save_plots("sailfish")
 # Longfin escolar
-save_plots("longfin-escolar", blend = TRUE)
+save_plots("longfin-escolar")
 # Bluefin tuna
-save_plots("bluefin-tuna", blend = TRUE)
+save_plots("bluefin-tuna")
 # Little tuna
-save_plots("little-tuna", blend = TRUE)
+save_plots("little-tuna")
 # Southern Bluefin Tuna
-save_plots("southern-bluefin-tuna", blend = TRUE)
+save_plots("southern-bluefin-tuna")
 # Slender tuna
-save_plots("slender-tuna", blend = TRUE)
+save_plots("slender-tuna")
 # Bonitos
-save_plots("bonitos", blend = TRUE)
+save_plots("bonitos")
 # Black marlin
-save_plots("black-marlin", blend = TRUE)
+save_plots("black-marlin")
 
 #### Map towing effort ####
 make_GriddedEffort <- function(df, effort_name, season_name) {
@@ -171,14 +172,13 @@ make_GriddedEffort <- function(df, effort_name, season_name) {
     rowSums() %>% 
     as.logical()
   
-  df_poly2 <- df_poly[idx,] %>% 
+  # Project to Pacific-centered Robinson
+  df_poly2 <- st_join(x = df_poly[idx,], y = df_sf) %>% 
     fSpatPlan_Convert2PacificRobinson() %>% 
     as_tibble()
   
-  df_tmp <- df %>% as_tibble() %>% 
-    cbind(., df_poly2) %>% 
-    st_as_sf(sf_column_name = "x") %>% 
-    dplyr::rename(geometry = x)
+  df_tmp <- df_poly2 %>% 
+    st_as_sf(sf_column_name = "geometry")
   
   return(df_tmp)
 }
@@ -192,9 +192,10 @@ make_EffortSeasonPlot <- function(df) {
     geom_text(data = lbl.Y.prj, aes(x = X.prj, y = Y.prj, label = lbl), color="grey50", size=2) +
     geom_text(data = lbl.X.prj, aes(x = X.prj, y = Y.prj, label = lbl), color="grey50", size=2) +
     # the default, ratio = 1 in coord_fixed ensures that one unit on the x-axis is the same length as one unit on the y-axis
-    scale_fill_manual(values = c("#c7e9b4", "#7fcdbb", "#41b6c4", "#2c7fb8", "#253494"),
+    scale_fill_manual(values = c("#8FBAE4", "#FEE05B", "#D9B342", "#A25A25", "#082436"),
                         aesthetics = "fill",
-                        name = "Effort") + theme_classic() + theme(axis.title = element_blank())
+                        name = "Effort") + theme_classic() + theme(axis.title = element_blank()) +
+    theme(legend.position = "none")
   
   return(plot)
 }
@@ -205,7 +206,7 @@ save_Effortplots <- function(effort_name) {
     tow_tmp %>% 
       make_GriddedEffort(., effort_name, season_list[i]) %>% 
       make_EffortSeasonPlot(.) %>% 
-      ggsave(filename = paste0(effort_name, "_", season_list[i], ".png"), path = "Figures/", width = 21, height = 21, dpi = 300)
+      ggsave(filename = paste0(effort_name, "_", season_list[i], ".png"), path = "Figures/", width = 21, height = 10, units = "in", dpi = 300)
   }
 }
 
