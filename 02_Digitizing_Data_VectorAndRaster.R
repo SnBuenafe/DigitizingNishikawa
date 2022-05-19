@@ -17,7 +17,9 @@ spp <- read_csv("Output/Species_Data.csv")
 
 ## Species Data
 spp_tmp <- spp %>% 
-  dplyr::mutate(longitude = longitude + 0.5, latitude = latitude + 0.5)
+  dplyr::mutate(latitude = latitude + 0.5) %>% 
+  dplyr::mutate(longitude = ifelse(longitude == 180, yes = -179.5,
+                       no = longitude + 0.5))
 
 # Show all data as gridded data.
 season_list <- c("jan-mar", "apr-jun", "jul-sept", "oct-dec")
@@ -43,7 +45,7 @@ make_GriddedData <- function(df, species_name, season_name, projected = TRUE) { 
     as.logical()
   
   # Project to Pacific-centered Robinson
-  df_poly2 <- df_poly[idx,] 
+  df_poly2 <- st_join(x = df_poly[idx,], y = df_sf)
   
   if (isTRUE(projected)){
     df_poly2 %<>% 
@@ -53,13 +55,10 @@ make_GriddedData <- function(df, species_name, season_name, projected = TRUE) { 
     df_poly2 %<>% 
       as_tibble()
   }
-  
-  df_tmp <- df %>% as_tibble() %>% 
-    cbind(., df_poly2) %>% 
-    st_as_sf(sf_column_name = "x") %>% 
-    dplyr::rename(geometry  = x)
 
-  return(df_tmp)
+  df_final <- df_poly2 %>% 
+    st_as_sf(sf_column_name = "geometry")
+  return(df_final)
 }
 save_RObjects <- function(species_name, season_name) {
   x <- make_GriddedData(df = spp_tmp, species_name, season_name)

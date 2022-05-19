@@ -13,7 +13,7 @@ file_list <- list.files(dir)
 # make sequences for longitude and latitude:
 l1 <- seq(from = 100, to = -180, by = -1)
 l2 <- seq(from = 179, to = 101, by = -1)
-longitude <- c("coordinates", l1, l2)
+longitude <- c(l1, l2)
 latitude <- seq(from = 50, to = -50, by = -1)
 
 ncores <- detectCores() - 1 
@@ -36,15 +36,15 @@ per_species <- foreach(i = 1:length(file_list), .packages = c('tidyverse')) %dop
   species_name <- (str_split(file_name, pattern = "_") %>% unlist())[1]
   season_name <- (str_split(file_name, pattern = "_") %>% unlist())[2]
   
-  df <- read.csv(file) %>% 
+  df <- read_csv(file) %>% 
     as_tibble() %>% 
     dplyr::select(-1) # removing first column
     
-  # make sure that dimensions are 361 (longitude) x 101 (latitude)
+  # make sure that dimensions are 360 (longitude) x 101 (latitude)
   df_new <- df[1:length(latitude), 1:length(longitude)] %>% 
     cbind(latitude, .) %>% 
-    as_tibble()
-  colnames(df_new) <- longitude
+    as_tibble() %>% 
+    dplyr::rename(coordinates = latitude)
   
   # Populate .csv tibble
   for(j in 2:ncol(df_new)){
@@ -60,7 +60,8 @@ per_species <- foreach(i = 1:length(file_list), .packages = c('tidyverse')) %dop
     }
   }
   
-  csv[[i]] <- csv_blank
+  csv[[i]] <- csv_blank %>% 
+    dplyr::mutate(longitude = -longitude) # flip the coordinates
 }
 stopCluster(cl)
 

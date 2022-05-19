@@ -55,14 +55,12 @@ make_GriddedData <- function(df, species_name, season_name) {
       as.logical()
     
     # Project to Pacific-centered Robinson
-    df_poly2 <- df_poly[idx,] %>% 
+    df_poly2 <- st_join(x = df_poly[idx,], y = df_sf) %>% 
       fSpatPlan_Convert2PacificRobinson() %>% 
       as_tibble()
     
-    df_tmp <- df %>% as_tibble() %>% 
-      cbind(., df_poly2) %>% 
-      st_as_sf(sf_column_name = "x") %>% 
-      dplyr::rename(geometry = x)
+    df_tmp <- df_poly2 %>% 
+      st_as_sf(sf_column_name = "geometry")
   }
   else {
     df_tmp <- NULL
@@ -90,51 +88,6 @@ make_SpeciesSeasonPlot <- function(df) {
   return(plot)
 }
 
-# Show 0s as points, and blend CPUE category 3 and 4 together. So, instead of having 5 categories, we have 3, just for plotting purposes.
-blend_SpeciesSeasonPlot <- function(df, species_name, season_name) {
-  
-  df_filtered <- df %>% 
-    dplyr::filter(species == species_name, season == season_name) %>% 
-    dplyr::filter(abundance == 0)
-  
-  df_crs <- st_crs(longlat)
-  
-  df_sf <- st_as_sf(df_filtered, coords = c("longitude", "latitude"), crs = df_crs) %>% 
-    fSpatPlan_Convert2PacificRobinson()
-  
-  df_tmp <- df %>% 
-    dplyr::filter(abundance > 0) %>% 
-    make_GriddedData(., species_name, season_name)
-  
-  plot <- ggplot()
-  if(!is_null(df_tmp)) {
-    df_tmp %<>% 
-      dplyr::mutate(category = case_when(abundance >= 3 ~ as.integer(3),
-                                        TRUE ~ abundance))
-    plot <- plot +
-      geom_sf(data = df_tmp, aes(fill = as.factor(category)), color = "grey64", size = 0.01)
-  }
-  
-  plot <- plot +
-    geom_sf(data = df_sf, size = 0.01, color = "grey64") +
-    geom_sf(data = land, fill = "grey20", color = NA, size = 0.01) +
-    geom_polygon(data=NE_box_rob, aes(x=long, y=lat), colour="black", fill="transparent", size = 0.25) +
-    
-    # add graticules projected to Robinson
-    geom_path(data=NE_graticules_rob, aes(long, lat, group=group), linetype="dotted", color="grey50", size = 0.25) +
-    
-    # add graticule labels – latitude and longitude
-    geom_text(data = lbl.Y.prj, aes(x = X.prj, y = Y.prj, label = lbl), color="grey50", size=2) +
-    geom_text(data = lbl.X.prj, aes(x = X.prj, y = Y.prj, label = lbl), color="grey50", size=2) +
-    # the default, ratio = 1 in coord_fixed ensures that one unit on the x-axis is the same length as one unit on the y-axis
-    
-    scale_fill_manual(values = c("#c7e9b4", "#41b6c4", "#253494"),
-                      aesthetics = "fill",
-                      name = "Abundance") + theme_classic() + theme(axis.title = element_blank())
-  
-  return(plot)
-}
-
 # Adding + 0.5 degree to both latitude and longitude
 # Because points in the .csv file represent the lower, left of each 1x1 grid cell
 # And we want the points to be in the center
@@ -150,23 +103,19 @@ tow_tmp <- tow %>%
 #### Plotting Gridded Data ####
 # Saves the plots to Figures/ (make sure you have the folder/create the folder!)
 season_list <- c("jan-mar", "apr-jun", "jul-sept", "oct-dec")
-save_plots <- function(species_name, blend = FALSE) { # Default: blend = FALSE; use blend = TRUE if you want to blend the plots (see above for explanation)
+save_plots <- function(species_name) {
   for (i in 1:length(season_list)) {
-    if (isTRUE(blend)) {
-      blend_SpeciesSeasonPlot(df = spp_tmp, species_name, season_list[i]) %>% 
-        ggsave(filename = paste0(species_name, "_", season_list[i], "_Blended.png"), path = "Figures/", width = 21, height = 21, dpi = 300)
-    }
-    else {
-      spp_tmp %>% 
-        make_GriddedData(., species_name, season_list[i]) %>% 
-        make_SpeciesSeasonPlot(.) %>% 
-        ggsave(filename = paste0(species_name, "_", season_list[i], ".png"), path = "Figures/", width = 21, height = 21, dpi = 300)
-    }
-
+    plot <- spp_tmp %>% 
+      make_GriddedData(., species_name, season_list[i]) %>% 
+      make_SpeciesSeasonPlot(.)
+    
+    ggsave(plot = plot,
+      filename = paste0(species_name, "_", season_list[i], ".png"), path = "Figures/", width = 21, height = 10, units = "in", dpi = 300)
   }
 }
+
 # Skipjack Tuna
-save_plots("skipjack-tuna", blend = TRUE)
+save_plots("skipjack-tuna")
 # Blue Marlin
 save_plots("blue-marlin", blend = TRUE)
 # Yellowfin Tuna
