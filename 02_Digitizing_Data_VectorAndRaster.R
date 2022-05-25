@@ -6,6 +6,7 @@ library(stars)
 source("fSpatPlan_Convert2PacificRobinson.R")
 
 spp <- read_csv("Output/Species_Data.csv")
+tow <- read_csv("Output/Tow_Data.csv")
 
 #### Saving as vector files ####
 # Vector files are in 1x1 resolution sf objects (polygons)
@@ -15,7 +16,7 @@ spp <- read_csv("Output/Species_Data.csv")
 # Because points in the .csv file represent the lower, left of each 1x1 grid cell
 # And we want the points to be in the center
 
-## Species Data
+##### Species Data #####
 spp_tmp <- spp %>% 
   dplyr::mutate(latitude = latitude + 0.5) %>% 
   dplyr::mutate(longitude = ifelse(longitude == 180, yes = -179.5,
@@ -68,7 +69,7 @@ save_RObjects <- function(species_name, season_name) {
   return(x)
 }
 
-# Save files. If you want to save them as objects in the environment do the following, for example:
+##### Save files. If you want to save them as objects in the environment do the following, for example: #####
 # obj <- save_RObjects("skipjack-tuna", "jan-mar")
 # Skipjack tuna
 for(i in 1:length(season_list)) {
@@ -265,4 +266,84 @@ for(i in 1:length(season_list)) {
 # Black marlin
 for(i in 1:length(season_list)) {
   save_RasterObj("black-marlin", season_list[i], projected = FALSE)
+}
+
+
+##### Tow Data #####
+tow_tmp <- tow %>% 
+  dplyr::mutate(latitude = latitude + 0.5) %>% 
+  dplyr::mutate(longitude = ifelse(longitude == 180, yes = -179.5,
+                                   no = longitude + 0.5))
+# Vector
+make_GriddedData <- function(df, category_name, season_name, projected = TRUE) { # Default is projected using Robinson Projection
+  longlat <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+  rob_pacific <- "+proj=robin +lon_0=180 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+  
+  df <- df %>% 
+    filter(category == category_name, season == season_name)
+  
+  df_crs <- st_crs(longlat)
+  
+  df_sf <- st_as_sf(df, coords = c("longitude", "latitude"), crs = df_crs)
+  
+  # Make grid around the limits of the area
+  df_poly <- df_sf %>% 
+    st_make_grid(cellsize = c(1,1), offset = st_bbox(df_sf)[c("xmin", "ymin")] - 0.5) %>% 
+    st_as_sf()
+  
+  # "Intersect" grids and points (from csv); TRUE if points are contained within the grid cells.
+  idx <- st_contains(df_poly, df_sf, sparse = FALSE) %>%
+    rowSums() %>% 
+    as.logical()
+  
+  # Project to Pacific-centered Robinson
+  df_poly2 <- st_join(x = df_poly[idx,], y = df_sf)
+  
+  if (isTRUE(projected)){
+    df_poly2 %<>% 
+      fSpatPlan_Convert2PacificRobinson() %>% 
+      as_tibble()
+  } else {
+    df_poly2 %<>% 
+      as_tibble()
+  }
+  
+  df_final <- df_poly2 %>% 
+    st_as_sf(sf_column_name = "geometry")
+  return(df_final)
+}
+save_RObjects <- function(category_name, season_name) {
+  x <- make_GriddedData(df = tow_tmp, category_name, season_name)
+  
+  saveRDS(x, file = paste0("Output/Vector/VectorFile_", category_name, "_", season_name, ".rds"))
+  
+  return(x)
+}
+# Tows
+for(i in 1:length(season_list)) {
+  save_RObjects("tows", season_list[i])
+}
+# Volume
+for(i in 1:length(season_list)) {
+  save_RObjects("volume", season_list[i])
+}
+# Raster
+save_RasterObj <- function(category_name, season_name, projected = TRUE) {
+  raster <- make_GriddedData(tow_tmp, category_name, season_name, projected) %>% 
+    dplyr::select(effort, geometry) %>% 
+    st_rasterize(.) %>% 
+    as(., "Raster") %>% 
+    rast()
+  
+  terra::writeRaster(raster, paste0("Output/Raster/RasterFile_", category_name, "_", season_name,".tif"), filetype="GTiff", overwrite=TRUE)
+  
+  return(raster)
+}
+# Tows
+for(i in 1:length(season_list)) {
+  save_RasterObj("tows", season_list[i], projected = FALSE)
+}
+# Volume
+for(i in 1:length(season_list)) {
+  save_RasterObj("volume", season_list[i], projected = FALSE)
 }
