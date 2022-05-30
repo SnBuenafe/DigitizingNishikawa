@@ -31,5 +31,9 @@ To replicate the process of generating these files go through the R scripts sequ
 
 * `01_Digitizing_Data_CSV.R`: Converts all .csv files from `/RawData` to one long csv file for larval distributions and one for towing effort
 * `02_Digitizing_Data_VectorAndRaster.R`: Creates the vector (sf objects saved as .RDS) and raster (GEOTIFF files saved as .tif) files
-* `03_Digitizing_Data_FAO_CWPGrid.R`: Creates the vector files of data intersected with FAO's Coordinating Working Party on Fishery Statistics (CWP) (sf objects saved as .RDS) (see: https://www.fao.org/cwp-on-fishery-statistics/archivedhandbook/general-concepts/major-fishing-areas-general/en/)
-* `04_Making_Maps.R`: Replicates the species plots shown in the data paper.
+* `03_Making_Maps.R`: Replicates the species plots shown in the data paper.
+
+Save FAO data in `Data/` folder to use this code. FAO data can be downloaded from:
+
+* CWP 1x1 grid code: ["Areal Grid System"](https://data.apps.fao.org/map/catalog/srv/eng/catalog.search#/metadata/cwp-grid-map-1deg_x_1deg?tab=search)
+* FAO Major Fishing Area shapefile: ["Major Fishing Areas"](https://www.fao.org/fishery/geonetwork/srv/eng/catalog.search#/metadata/ac02a460-da52-11dc-9d70-0017f293bd28)
