@@ -4,7 +4,7 @@ library(sf)
 library(terra)
 library(stars)
 source("fSpatPlan_Convert2PacificRobinson.R")
-sf::sf_use_s2(FALSE)
+sf::sf_use_s2(TRUE)
 
 spp <- read_csv("Output/Species_Data.csv")
 tow <- read_csv("Output/Tow_Data.csv")
@@ -35,7 +35,7 @@ spp_tmp <- spp %>%
 
 # Show all data as gridded data.
 season_list <- c("jan-mar", "apr-jun", "jul-sept", "oct-dec")
-make_GriddedData <- function(df, species_name, season_name, projected = TRUE) { # Default is projected using Robinson Projection
+make_GriddedData <- function(df, species_name, season_name, projected = FALSE) { # Default is projected using Robinson Projection
   longlat <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
   rob_pacific <- "+proj=robin +lon_0=180 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
   
@@ -109,8 +109,8 @@ intersect_FAO <- function(grid) {
 }
 
 save_RObjects <- function(species_name, season_name) {
-  x <- make_GriddedData(df = spp_tmp, species_name, season_name) %>% 
-    intersect_FAO()
+  x <- make_GriddedData(df = spp_tmp, species_name, season_name) #%>% 
+   # intersect_FAO()
   
   saveRDS(x, file = paste0("Output/Vector/VectorFile_", species_name, "_", season_name, ".rds"))
   
@@ -126,6 +126,7 @@ save_RObjects <- function(species_name, season_name) {
 for(i in 1:length(season_list)) {
   save_RObjects("skipjack-tuna", season_list[i])
 }
+
 
 # Blue marlin
 for(i in 1:length(season_list)) {
